@@ -36,3 +36,4 @@ Interactive docs: `http://localhost:8000/docs`.
 "POSTGRES_USER"
 "POSTGRES_PASSWORD"
 "POSTGRES_DB"
+"SECRET_KEY" - JWT secret key

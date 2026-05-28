@@ -4,4 +4,8 @@ version = "0.1.0"
 description = "Habits tracker API"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+    "asyncpg>=0.30.0",
+    "pydantic-settings>=2.7.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+]

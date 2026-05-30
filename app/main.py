@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app.models.base import Base
+from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 
 
@@ -28,6 +29,7 @@ def get_app() -> FastAPI:
     )
 
     app.include_router(users_router)
+    app.include_router(auth_router)
 
     return app
 

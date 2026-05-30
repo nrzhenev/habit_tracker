@@ -11,6 +11,7 @@ from app.models import User
 from app.models.base import Base
 
 TEST_DB_NAME = f"{settings.POSTGRES_DB}_test"
+TEST_USER_PASSWORD = "secret"
 
 
 def _test_db_url() -> str:
@@ -58,7 +59,7 @@ async def db_session(engine):
 async def user(db_session):
     user = User(
         email="test@example.com",
-        hashed_password=hash_password("secret"),
+        hashed_password=hash_password(TEST_USER_PASSWORD),
     )
     db_session.add(user)
     await db_session.commit()

@@ -377,6 +377,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-jose", extra = ["cryptography"] },
+    { name = "python-multipart" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
@@ -397,6 +398,7 @@ requires-dist = [
     { name = "pydantic", extras = ["email-validator"], specifier = ">=2.10.0" },
     { name = "pydantic-settings", specifier = ">=2.7.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.3.0" },
+    { name = "python-multipart", specifier = ">=0.0.18" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.36" },
 ]
 

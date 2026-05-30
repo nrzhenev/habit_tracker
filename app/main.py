@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app.models.base import Base
+from app.api.users import router as users_router
 
 
 @asynccontextmanager
@@ -25,6 +26,8 @@ def get_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(users_router)
 
     return app
 

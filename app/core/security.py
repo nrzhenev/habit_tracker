@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import bcrypt
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
 from app.config import settings
@@ -9,6 +10,8 @@ from app.config import settings
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.LOGIN_URL)
 
 
 def hash_password(password: str) -> str:

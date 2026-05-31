@@ -19,3 +19,6 @@ class ParsingRule(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     message_type: Mapped["MessageType"] = relationship("MessageType", back_populates="parsing_rules")
+    parsed_answers: Mapped[list["ParsedAnswer"]] = relationship(
+        "ParsedAnswer", back_populates="parsing_rule"
+    )

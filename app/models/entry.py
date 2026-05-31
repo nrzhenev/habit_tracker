@@ -17,3 +17,6 @@ class Entry(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="entries")
     message_type: Mapped["MessageType"] = relationship("MessageType", back_populates="entries")
+    parsed_answers: Mapped[list["ParsedAnswer"]] = relationship(
+        "ParsedAnswer", back_populates="entry", cascade="all, delete-orphan"
+    )

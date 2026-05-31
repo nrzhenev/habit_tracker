@@ -1,10 +1,11 @@
 from typing import Any
 
 from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import decode_token, oauth2_scheme
+from app.core.security import bearer_scheme, decode_token
 from app.database import get_db
 from app.models.user import User
 
@@ -18,10 +19,10 @@ def _require_credential(param: Any):
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    payload = decode_token(token)
+    payload = decode_token(credentials.credentials)
     _require_credential(payload)
 
     user_id = payload.get("sub")

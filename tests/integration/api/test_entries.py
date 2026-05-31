@@ -7,13 +7,11 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.mark.asyncio
-async def test_should_return_201_when_create_entry(async_client, user, message_type):
-    token = create_access_token({"sub": str(user.id)})
-
+async def test_should_return_201_when_create_entry(async_client, auth_headers, user, message_type):
     response = await async_client.post(
         "/entries",
         json={"content": "Today was a good day", "message_type_id": message_type.id},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 201
@@ -25,9 +23,7 @@ async def test_should_return_201_when_create_entry(async_client, user, message_t
 
 
 @pytest.mark.asyncio
-async def test_should_return_401_when_create_entry_without_auth(
-    async_client, message_type
-):
+async def test_should_return_401_when_create_entry_without_auth(async_client, message_type):
     response = await async_client.post(
         "/entries",
         json={"content": "test", "message_type_id": message_type.id},
@@ -36,44 +32,36 @@ async def test_should_return_401_when_create_entry_without_auth(
 
 
 @pytest.mark.asyncio
-async def test_should_return_422_when_create_entry_missing_content(
-    async_client, user, message_type
-):
-    token = create_access_token({"sub": str(user.id)})
-
+async def test_should_return_422_when_create_entry_missing_content(async_client, auth_headers, message_type):
     response = await async_client.post(
         "/entries",
         json={"message_type_id": message_type.id},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_should_return_422_when_create_entry_missing_type(async_client, user):
-    token = create_access_token({"sub": str(user.id)})
-
+async def test_should_return_422_when_create_entry_missing_type(async_client, auth_headers):
     response = await async_client.post(
         "/entries",
         json={"content": "test"},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_should_return_200_when_list_entries(async_client, user, message_type):
-    token = create_access_token({"sub": str(user.id)})
-
+async def test_should_return_200_when_list_entries(async_client, auth_headers, message_type):
     await async_client.post(
         "/entries",
         json={"content": "First entry", "message_type_id": message_type.id},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
 
     response = await async_client.get(
         "/entries",
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -83,12 +71,10 @@ async def test_should_return_200_when_list_entries(async_client, user, message_t
 
 
 @pytest.mark.asyncio
-async def test_should_return_200_when_list_empty(async_client, user):
-    token = create_access_token({"sub": str(user.id)})
-
+async def test_should_return_200_when_list_empty(async_client, auth_headers):
     response = await async_client.get(
         "/entries",
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -102,15 +88,11 @@ async def test_should_return_401_when_list_without_auth(async_client):
 
 
 @pytest.mark.asyncio
-async def test_should_not_return_other_user_entries(
-    async_client, user, message_type, db_session
-):
-    token = create_access_token({"sub": str(user.id)})
-
+async def test_should_not_return_other_user_entries(async_client, auth_headers, user, message_type, db_session):
     await async_client.post(
         "/entries",
         json={"content": "My entry", "message_type_id": message_type.id},
-        headers={"Authorization": f"Bearer {token}"},
+        headers=auth_headers,
     )
 
     other_user = User(

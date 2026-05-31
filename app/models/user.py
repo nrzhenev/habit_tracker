@@ -17,3 +17,6 @@ class User(Base):
     message_types: Mapped[list["MessageType"]] = relationship(
         "MessageType", back_populates="user", cascade="all, delete-orphan"
     )
+    entries: Mapped[list["Entry"]] = relationship(
+        "Entry", back_populates="user", cascade="all, delete-orphan"
+    )

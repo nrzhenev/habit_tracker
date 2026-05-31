@@ -19,3 +19,6 @@ class MessageType(Base):
     parsing_rules: Mapped[list["ParsingRule"]] = relationship(
         "ParsingRule", back_populates="message_type", cascade="all, delete-orphan"
     )
+    entries: Mapped[list["Entry"]] = relationship(
+        "Entry", back_populates="message_type"
+    )

@@ -16,3 +16,6 @@ class MessageType(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship("User", back_populates="message_types")
+    parsing_rules: Mapped[list["ParsingRule"]] = relationship(
+        "ParsingRule", back_populates="message_type", cascade="all, delete-orphan"
+    )

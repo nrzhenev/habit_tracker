@@ -19,7 +19,6 @@ async def create_entry(
 ):
     entry = Entry(
         user_id=user.id,
-        message_type_id=body.message_type_id,
         content=body.content,
     )
     db.add(entry)

@@ -14,9 +14,6 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    message_types: Mapped[list["MessageType"]] = relationship(
-        "MessageType", back_populates="user", cascade="all, delete-orphan"
-    )
     entries: Mapped[list["Entry"]] = relationship(
         "Entry", back_populates="user", cascade="all, delete-orphan"
     )

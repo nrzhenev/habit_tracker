@@ -12,7 +12,6 @@ class ParsingRuleRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    message_type_id: int
     order: int
     question: str
     choices: list[str]

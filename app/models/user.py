@@ -10,10 +10,17 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(320), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(320), unique=True, index=True, nullable=False
+    )
     hashed_password: Mapped[str] = mapped_column(String(128), nullable=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
+    parsing_rules: Mapped[list["ParsingRule"]] = relationship(
+        "ParsingRule", back_populates="user", cascade="all, delete-orphan"
+    )
     entries: Mapped[list["Entry"]] = relationship(
         "Entry", back_populates="user", cascade="all, delete-orphan"
     )

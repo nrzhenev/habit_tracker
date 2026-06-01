@@ -19,8 +19,9 @@ async def entry(db_session, user):
 
 
 @pytest_asyncio.fixture
-async def parsing_rule(db_session):
+async def parsing_rule(db_session, user):
     rule = ParsingRule(
+        user_id=user.id,
         order=1,
         question="How was your mood?",
         choices=["good", "ok", "bad"],

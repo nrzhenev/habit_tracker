@@ -6,7 +6,6 @@ from app.models.user import User
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.asyncio
 async def test_should_return_201_when_create_entry(async_client, auth_headers, user):
     response = await async_client.post(
         "/entries",
@@ -21,7 +20,6 @@ async def test_should_return_201_when_create_entry(async_client, auth_headers, u
     assert "id" in data
 
 
-@pytest.mark.asyncio
 async def test_should_return_401_when_create_entry_without_auth(async_client):
     response = await async_client.post(
         "/entries",
@@ -30,7 +28,6 @@ async def test_should_return_401_when_create_entry_without_auth(async_client):
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_should_return_422_when_create_entry_missing_content(async_client, auth_headers):
     response = await async_client.post(
         "/entries",
@@ -40,7 +37,6 @@ async def test_should_return_422_when_create_entry_missing_content(async_client,
     assert response.status_code == 422
 
 
-@pytest.mark.asyncio
 async def test_should_return_200_when_list_entries(async_client, auth_headers):
     await async_client.post(
         "/entries",
@@ -59,7 +55,6 @@ async def test_should_return_200_when_list_entries(async_client, auth_headers):
     assert data[0]["content"] == "First entry"
 
 
-@pytest.mark.asyncio
 async def test_should_return_200_when_list_empty(async_client, auth_headers):
     response = await async_client.get(
         "/entries",
@@ -70,13 +65,11 @@ async def test_should_return_200_when_list_empty(async_client, auth_headers):
     assert response.json() == []
 
 
-@pytest.mark.asyncio
 async def test_should_return_401_when_list_without_auth(async_client):
     response = await async_client.get("/entries")
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_should_not_return_other_user_entries(async_client, auth_headers, user, db_session):
     await async_client.post(
         "/entries",

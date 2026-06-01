@@ -6,7 +6,6 @@ from app.models.user import User
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.asyncio
 async def test_should_return_201_when_create_answer(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -23,7 +22,6 @@ async def test_should_return_201_when_create_answer(
     assert data["entry_id"] == entry.id
 
 
-@pytest.mark.asyncio
 async def test_should_return_401_when_create_answer_without_auth(
     async_client, entry, parsing_rule
 ):
@@ -34,7 +32,6 @@ async def test_should_return_401_when_create_answer_without_auth(
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_should_return_404_when_create_answer_for_nonexistent_entry(
     async_client, auth_headers, parsing_rule
 ):
@@ -46,7 +43,6 @@ async def test_should_return_404_when_create_answer_for_nonexistent_entry(
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_should_return_409_when_create_duplicate_answer(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -64,7 +60,6 @@ async def test_should_return_409_when_create_duplicate_answer(
     assert response.status_code == 409
 
 
-@pytest.mark.asyncio
 async def test_should_return_422_when_create_answer_missing_fields(
     async_client, auth_headers, entry
 ):
@@ -76,7 +71,6 @@ async def test_should_return_422_when_create_answer_missing_fields(
     assert response.status_code == 422
 
 
-@pytest.mark.asyncio
 async def test_should_return_200_when_list_answers(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -97,7 +91,6 @@ async def test_should_return_200_when_list_answers(
     assert data[0]["answer"] == "good"
 
 
-@pytest.mark.asyncio
 async def test_should_return_200_when_list_empty(async_client, auth_headers, entry):
     response = await async_client.get(
         f"/entries/{entry.id}/answers",
@@ -108,13 +101,11 @@ async def test_should_return_200_when_list_empty(async_client, auth_headers, ent
     assert response.json() == []
 
 
-@pytest.mark.asyncio
 async def test_should_return_401_when_list_answers_without_auth(async_client, entry):
     response = await async_client.get(f"/entries/{entry.id}/answers")
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_should_not_return_other_user_answers(
     async_client, entry, parsing_rule, db_session, auth_headers
 ):
@@ -141,7 +132,6 @@ async def test_should_not_return_other_user_answers(
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_should_return_200_when_update_answer(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -162,7 +152,6 @@ async def test_should_return_200_when_update_answer(
     assert response.json()["answer"] == "bad"
 
 
-@pytest.mark.asyncio
 async def test_should_return_401_when_update_answer_without_auth(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -180,7 +169,6 @@ async def test_should_return_401_when_update_answer_without_auth(
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_should_return_404_when_update_nonexistent_answer(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -192,7 +180,6 @@ async def test_should_return_404_when_update_nonexistent_answer(
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_should_return_204_when_delete_answer(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -211,7 +198,6 @@ async def test_should_return_204_when_delete_answer(
     assert response.status_code == 204
 
 
-@pytest.mark.asyncio
 async def test_should_return_401_when_delete_answer_without_auth(
     async_client, auth_headers, entry, parsing_rule
 ):
@@ -226,7 +212,6 @@ async def test_should_return_401_when_delete_answer_without_auth(
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_should_return_404_when_delete_nonexistent_answer(
     async_client, auth_headers, entry
 ):

@@ -1,11 +1,11 @@
 import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ParsingRuleCreate(BaseModel):
     question: str
-    choices: list[str]
+    choices: list[str] = Field(min_length=1)
 
 
 class ParsingRuleRead(BaseModel):

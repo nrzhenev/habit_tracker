@@ -18,9 +18,6 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    parsing_rules: Mapped[list["ParsingRule"]] = relationship(
-        "ParsingRule", back_populates="user", cascade="all, delete-orphan"
-    )
     entries: Mapped[list["Entry"]] = relationship(
         "Entry", back_populates="user", cascade="all, delete-orphan"
     )

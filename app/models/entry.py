@@ -15,6 +15,3 @@ class Entry(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship("User", back_populates="entries")
-    parsed_answers: Mapped[list["ParsedAnswer"]] = relationship(
-        "ParsedAnswer", back_populates="entry", cascade="all, delete-orphan"
-    )

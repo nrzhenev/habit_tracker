@@ -9,6 +9,7 @@ from app.models.base import Base
 from app.api.activities import router as activities_router
 from app.api.auth import router as auth_router
 from app.api.entries import router as entries_router
+from app.api.events import router as events_router
 from app.api.expenses import router as expenses_router
 from app.api.users import router as users_router
 
@@ -36,6 +37,7 @@ def get_app() -> FastAPI:
     app.include_router(entries_router)
     app.include_router(expenses_router)
     app.include_router(activities_router)
+    app.include_router(events_router)
 
     return app
 

@@ -6,6 +6,7 @@ import pytest_asyncio
 from app.core.security import create_access_token, hash_password
 from app.models.activity import Activity
 from app.models.entry import Entry
+from app.models.event import Event
 from app.models.expense import Expense
 from app.models.user import User
 
@@ -51,6 +52,18 @@ async def activity(db_session, entry):
     await db_session.commit()
     await db_session.refresh(activity)
     return activity
+
+
+@pytest_asyncio.fixture
+async def event(db_session, entry):
+    event = Event(
+        entry_id=entry.id,
+        action="meeting",
+    )
+    db_session.add(event)
+    await db_session.commit()
+    await db_session.refresh(event)
+    return event
 
 
 @pytest_asyncio.fixture

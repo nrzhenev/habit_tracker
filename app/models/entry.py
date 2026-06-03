@@ -12,9 +12,13 @@ class Entry(Base):
     __tablename__ = "entries"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     content: Mapped[str] = mapped_column(String(10000), nullable=False)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="entries")
     expense: Mapped[Optional["Expense"]] = relationship(
@@ -22,4 +26,7 @@ class Entry(Base):
     )
     activity: Mapped[Optional["Activity"]] = relationship(
         "Activity", back_populates="entry", uselist=False
+    )
+    event: Mapped[Optional["Event"]] = relationship(
+        "Event", back_populates="entry", uselist=False
     )

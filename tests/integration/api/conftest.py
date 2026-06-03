@@ -4,6 +4,7 @@ import pytest
 import pytest_asyncio
 
 from app.core.security import create_access_token, hash_password
+from app.models.activity import Activity
 from app.models.entry import Entry
 from app.models.expense import Expense
 from app.models.user import User
@@ -39,6 +40,17 @@ async def expense(db_session, entry):
 def auth_headers(user):
     token = create_access_token({"sub": str(user.id)})
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def activity(db_session, entry):
+    activity = Activity(
+        entry_id=entry.id,
+    )
+    db_session.add(activity)
+    await db_session.commit()
+    await db_session.refresh(activity)
+    return activity
 
 
 @pytest_asyncio.fixture

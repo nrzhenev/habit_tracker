@@ -20,3 +20,6 @@ class Entry(Base):
     expense: Mapped[Optional["Expense"]] = relationship(
         "Expense", back_populates="entry", uselist=False
     )
+    activity: Mapped[Optional["Activity"]] = relationship(
+        "Activity", back_populates="entry", uselist=False
+    )

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app.models.base import Base
+from app.api.activities import router as activities_router
 from app.api.auth import router as auth_router
 from app.api.entries import router as entries_router
 from app.api.expenses import router as expenses_router
@@ -34,6 +35,7 @@ def get_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(entries_router)
     app.include_router(expenses_router)
+    app.include_router(activities_router)
 
     return app
 

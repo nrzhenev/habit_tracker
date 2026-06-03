@@ -1,8 +1,5 @@
 import pytest
 
-from app.core.security import create_access_token, hash_password
-from app.models.user import User
-
 pytestmark = pytest.mark.integration
 
 
@@ -28,7 +25,9 @@ async def test_should_return_401_when_create_entry_without_auth(async_client):
     assert response.status_code == 401
 
 
-async def test_should_return_422_when_create_entry_missing_content(async_client, auth_headers):
+async def test_should_return_422_when_create_entry_missing_content(
+    async_client, auth_headers
+):
     response = await async_client.post(
         "/entries",
         json={},
@@ -70,26 +69,18 @@ async def test_should_return_401_when_list_without_auth(async_client):
     assert response.status_code == 401
 
 
-async def test_should_not_return_other_user_entries(async_client, auth_headers, user, db_session):
+async def test_should_not_return_other_user_entries(
+    async_client, auth_headers, user, other_auth_headers
+):
     await async_client.post(
         "/entries",
         json={"content": "My entry"},
         headers=auth_headers,
     )
 
-    other_user = User(
-        email="other@example.com",
-        hashed_password=hash_password("secret"),
-    )
-    db_session.add(other_user)
-    await db_session.commit()
-    await db_session.refresh(other_user)
-
-    other_token = create_access_token({"sub": str(other_user.id)})
-
     response = await async_client.get(
         "/entries",
-        headers={"Authorization": f"Bearer {other_token}"},
+        headers=other_auth_headers,
     )
 
     assert response.status_code == 200

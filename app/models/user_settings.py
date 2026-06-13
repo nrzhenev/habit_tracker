@@ -13,5 +13,8 @@ class UserSettings(Base):
     default_currency: Mapped[str] = mapped_column(
         String(3), default="USD", nullable=False
     )
+    timezone: Mapped[str] = mapped_column(
+        String(64), default="UTC", nullable=False
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="settings")

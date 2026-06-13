@@ -4,5 +4,6 @@ from app.models.entry import Entry
 from app.models.event import Event
 from app.models.expense import Expense
 from app.models.user import User
+from app.models.user_settings import UserSettings
 
-__all__ = ["Base", "User", "Entry", "Expense", "Activity", "Event"]
+__all__ = ["Base", "User", "Entry", "Expense", "Activity", "Event", "UserSettings"]

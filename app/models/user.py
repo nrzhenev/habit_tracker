@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -20,4 +21,8 @@ class User(Base):
 
     entries: Mapped[list["Entry"]] = relationship(
         "Entry", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    settings: Mapped[Optional["UserSettings"]] = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )

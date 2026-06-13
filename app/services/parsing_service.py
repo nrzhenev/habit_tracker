@@ -2,7 +2,7 @@ import json
 
 from app.config import settings
 from app.core.groq_client import groq_client, GroqClient
-from app.schemas.parsing import ActivityParsed, EventParsed, ExpenseParsed
+from app.schemas.parsing import ClassificationResponse
 from app.schemas.user_settings import UserSettingsSchema
 
 
@@ -12,7 +12,7 @@ class ParsingService:
 
     async def classify(
         self, user_content: str, user_settings: UserSettingsSchema
-    ) -> str:
+    ) -> ClassificationResponse:
         system_prompt = self._build_system_prompt(user_settings)
         messages: list[dict[str, str]] = [
             {"role": "system", "content": system_prompt},
@@ -24,7 +24,38 @@ class ParsingService:
             temperature=settings.GROQ_TEMPERATURE,
             max_tokens=settings.GROQ_MAX_TOKENS,
         )
-        return response.choices[0].message.content.strip()
+        response_string = response.choices[0].message.content.strip()
+        data = json.loads(response_string)
+        type_ = data["type"]
+        if type_ not in ("expense", "activity", "event"):
+            raise ValueError(f"Unknown type: {type_}")
+        return ClassificationResponse(type=type_)
+
+    def _build_system_prompt(self, user_settings: UserSettingsSchema) -> str:
+        lines = [
+            "You are a personal log classifier. Classify the user message into one of three types.",
+            "",
+            "## Types",
+            "- expense: user spent or bought something.",
+            "- activity: user did something that explicitly lasted a period of time (duration is mentioned).",
+            "- event: anything else.",
+            "",
+            "## Rules",
+            f"- Default currency: {user_settings.default_currency}.",
+            '- Return ONLY: {"type": "<expense|activity|event>"}',
+            "- No other fields, no explanation.",
+            "",
+            "## Examples",
+            'Input: "Spent 1500"',
+            'Output: {"type": "expense"}',
+            "",
+            'Input: "Ran for 30 minutes"',
+            'Output: {"type": "activity"}',
+            "",
+            'Input: "Woke up 15 minutes ago"',
+            'Output: {"type": "event"}',
+        ]
+        return "\n".join(lines)
 
 
 parsing_service = ParsingService()

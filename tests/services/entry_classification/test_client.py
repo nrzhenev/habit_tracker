@@ -9,7 +9,7 @@ from app.core.groq_client import (
 )
 from app.schemas.parsing import ClassificationResponse
 from app.schemas.user_settings import UserSettingsSchema
-from app.services.parsing.client import LLMClassifier
+from app.services.entry_classification.client import LLMClassifier
 
 pytestmark = pytest.mark.unit
 

@@ -1,9 +1,8 @@
-import json
-
 from app.config import settings
 from app.core.groq_client import groq_client, GroqClient
 from app.schemas.parsing import ClassificationResponse
 from app.schemas.user_settings import UserSettingsSchema
+from app.services.parsing.parser import parse_llm_response
 from app.services.parsing.prompts import build_classification_prompt
 
 
@@ -26,11 +25,7 @@ class ParsingService:
             max_tokens=settings.GROQ_MAX_TOKENS,
         )
         response_string = response.choices[0].message.content.strip()
-        data = json.loads(response_string)
-        type_ = data["type"]
-        if type_ not in ("expense", "activity", "event"):
-            raise ValueError(f"Unknown type: {type_}")
-        return ClassificationResponse(type=type_)
+        return parse_llm_response(response_string)
 
 
 parsing_service = ParsingService()

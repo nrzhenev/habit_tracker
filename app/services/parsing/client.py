@@ -6,7 +6,7 @@ from app.services.parsing.parser import parse_llm_response
 from app.services.parsing.prompts import build_classification_prompt
 
 
-class ParsingService:
+class LLMClassifier:
     def __init__(self, client: GroqClient | None = None):
         self._client = client or groq_client
 
@@ -28,4 +28,4 @@ class ParsingService:
         return parse_llm_response(response_string)
 
 
-parsing_service = ParsingService()
+parsing_service = LLMClassifier()

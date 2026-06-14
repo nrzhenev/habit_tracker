@@ -1,3 +1,3 @@
-from app.services.parsing.client import ParsingService, parsing_service
+from app.services.parsing.client import LLMClassifier, parsing_service
 
-__all__ = ["ParsingService", "parsing_service"]
+__all__ = ["LLMClassifier", "parsing_service"]

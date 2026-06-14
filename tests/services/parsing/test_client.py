@@ -9,7 +9,7 @@ from app.core.groq_client import (
 )
 from app.schemas.parsing import ClassificationResponse
 from app.schemas.user_settings import UserSettingsSchema
-from app.services.parsing.client import ParsingService
+from app.services.parsing.client import LLMClassifier
 
 pytestmark = pytest.mark.unit
 
@@ -54,7 +54,7 @@ class TestClassify:
             return_json='{"type":"expense","occurred_at":null,"currency":"RUB","items":["bread"],'
             '"amount":100,"category":"food","place":null}'
         )
-        service = ParsingService(client=stub)
+        service = LLMClassifier(client=stub)
         result = await service.classify("Spent 100", user_settings)
         assert result == ClassificationResponse(type="expense")
 
@@ -63,7 +63,7 @@ class TestClassify:
             return_json='{"type":"activity","started_at":"2025-01-01T10:00:00+03:00",'
             '"ended_at":"2025-01-01T10:30:00+03:00","category":"sport"}'
         )
-        service = ParsingService(client=stub)
+        service = LLMClassifier(client=stub)
         result = await service.classify("Ran for 30 minutes", user_settings)
         assert result == ClassificationResponse(type="activity")
 
@@ -71,12 +71,12 @@ class TestClassify:
         stub = StubGroqClient(
             return_json='{"type":"event","action":"woke_up","occurred_at":"2025-01-01T07:00:00+03:00"}'
         )
-        service = ParsingService(client=stub)
+        service = LLMClassifier(client=stub)
         result = await service.classify("Woke up", user_settings)
         assert result == ClassificationResponse(type="event")
 
     async def test_should_raise_groq_api_error(self, user_settings):
         stub = StubGroqClient(raise_error=GroqApiError(500, "Internal error"))
-        service = ParsingService(client=stub)
+        service = LLMClassifier(client=stub)
         with pytest.raises(GroqApiError):
             await service.classify("test", user_settings)

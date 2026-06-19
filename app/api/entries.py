@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_classifier, get_current_user
 from app.database import get_db
+from app.models.activity import Activity
 from app.models.entry import Entry
 from app.models.user import User
+from app.schemas.activity import ActivityDetail
 from app.schemas.entry import EntryCreate, EntryRead
 from app.services.entry_classification.client import LLMClassifier
 from app.services.entry_service import process_entry
@@ -49,10 +52,39 @@ async def delete_entry(
 ):
     entry = await db.get(Entry, entry_id)
     if not entry:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found"
+        )
 
     if entry.user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found"
+        )
 
     await db.delete(entry)
     await db.commit()
+
+
+@router.get("/{entry_id}/details")
+async def get_entry_details(
+    entry_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    entry = await db.get(Entry, entry_id)
+    if not entry or entry.user_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found"
+        )
+
+    if not entry.entry_type:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    # TODO hardcoded to Activity — replace with proper type dispatch
+    orm_cls, detail_cls = (Activity, ActivityDetail)
+    result = await db.execute(select(orm_cls).where(orm_cls.entry_id == entry.id))
+    child = result.scalar_one_or_none()
+    if not child:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    return detail_cls.model_validate(child)

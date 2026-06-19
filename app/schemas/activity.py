@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -23,3 +24,7 @@ class ActivityRead(BaseModel):
     started_at: datetime.datetime | None
     ended_at: datetime.datetime | None
     category: str | None
+
+
+class ActivityDetail(ActivityRead):
+    type: Literal["activity"] = "activity"

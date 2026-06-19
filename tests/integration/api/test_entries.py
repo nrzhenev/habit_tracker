@@ -116,3 +116,56 @@ async def test_should_return_404_when_delete_entry_not_owned(
         headers=other_auth_headers,
     )
     assert response.status_code == 404
+
+
+async def test_should_return_204_when_entry_type_event_no_child(async_client, auth_headers):
+    post = await async_client.post(
+        "/entries",
+        json={"content": "Woke up"},
+        headers=auth_headers,
+    )
+    entry_id = post.json()["id"]
+
+    response = await async_client.get(
+        f"/entries/{entry_id}/details",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 204
+
+
+async def test_should_return_204_when_no_child(async_client, auth_headers, entry):
+    response = await async_client.get(
+        f"/entries/{entry.id}/details",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 204
+
+
+async def test_should_return_404_when_details_entry_not_found(
+    async_client, auth_headers
+):
+    response = await async_client.get(
+        "/entries/99999/details",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 404
+
+
+async def test_should_return_404_when_details_entry_not_owned(
+    async_client, entry, other_auth_headers
+):
+    response = await async_client.get(
+        f"/entries/{entry.id}/details",
+        headers=other_auth_headers,
+    )
+
+    assert response.status_code == 404
+
+
+async def test_should_return_401_when_details_without_auth(async_client):
+    response = await async_client.get("/entries/1/details")
+
+    assert response.status_code == 401

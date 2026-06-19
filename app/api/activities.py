@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.activity import Activity
-from app.models.entry import Entry
+from app.entry.model import Entry
 from app.models.user import User
 from app.schemas.activity import ActivityCreate, ActivityUpdate
 

@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.models.entry import Entry
+from app.entry.model import Entry
 from app.models.user import User
 from app.models.user_settings import UserSettings
 from app.schemas.user_settings import UserSettingsSchema

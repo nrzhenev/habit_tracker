@@ -2,8 +2,8 @@ from app.config import settings
 from app.core.groq_client import groq_client, GroqClient
 from app.schemas.parsing import ClassificationResponse
 from app.schemas.user_settings import UserSettingsSchema
-from app.services.entry_classification.parser import parse_llm_response
-from app.services.entry_classification.prompts import build_classification_prompt
+from app.entry.entry_classification.parser import parse_llm_response
+from app.entry.entry_classification.prompts import build_classification_prompt
 
 
 class LLMClassifier:

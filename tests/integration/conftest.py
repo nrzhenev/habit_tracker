@@ -5,7 +5,7 @@ import pytest_asyncio
 
 from app.core.security import create_access_token, hash_password
 from app.models.activity import Activity
-from app.models.entry import Entry
+from app.entry.model import Entry
 from app.models.event import Event
 from app.models.expense import Expense
 from app.models.user import User

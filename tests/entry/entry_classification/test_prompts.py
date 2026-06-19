@@ -1,7 +1,7 @@
 import pytest
 
 from app.schemas.user_settings import UserSettingsSchema
-from app.services.entry_classification.prompts import build_classification_prompt
+from app.entry.entry_classification.prompts import build_classification_prompt
 
 pytestmark = pytest.mark.unit
 

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.api.deps import get_classifier
 from app.config import settings
-from app.core.security import hash_password
+from app.core.security import hash_password, create_access_token
 from app.schemas.parsing import ClassificationResponse
 from app.database import get_db
 from app.main import get_app
@@ -75,7 +75,7 @@ async def async_client(db_session):
         yield db_session
 
     async def override_get_classifier():
-        from app.services.entry_classification.client import LLMClassifier
+        from app.entry.entry_classification.client import LLMClassifier
 
         class _Stub(LLMClassifier):
             async def classify(self, uc, us):
@@ -90,3 +90,22 @@ async def async_client(db_session):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+@pytest_asyncio.fixture
+def auth_headers(user):
+    token = create_access_token({"sub": str(user.id)})
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def other_auth_headers(db_session):
+    other_user = User(
+        email="other@example.com",
+        hashed_password=hash_password("secret"),
+    )
+    db_session.add(other_user)
+    await db_session.commit()
+    await db_session.refresh(other_user)
+    token = create_access_token({"sub": str(other_user.id)})
+    return {"Authorization": f"Bearer {token}"}

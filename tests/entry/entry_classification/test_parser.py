@@ -3,7 +3,7 @@ import json
 import pytest
 
 from app.schemas.parsing import ClassificationResponse
-from app.services.entry_classification.parser import parse_llm_response
+from app.entry.entry_classification.parser import parse_llm_response
 
 pytestmark = pytest.mark.unit
 

@@ -6,12 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_classifier, get_current_user
 from app.database import get_db
 from app.models.activity import Activity
-from app.models.entry import Entry
+from app.entry.model import Entry
 from app.models.user import User
 from app.schemas.activity import ActivityDetail
-from app.schemas.entry import EntryCreate, EntryRead
-from app.services.entry_classification.client import LLMClassifier
-from app.services.entry_service import process_entry
+from app.entry.schema import EntryCreate, EntryRead
+from app.entry.entry_classification.client import LLMClassifier
+from app.entry.entry_service import process_entry
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 

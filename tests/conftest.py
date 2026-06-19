@@ -3,8 +3,10 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from app.api.deps import get_classifier
 from app.config import settings
 from app.core.security import hash_password
+from app.schemas.parsing import ClassificationResponse
 from app.database import get_db
 from app.main import get_app
 from app.models import User
@@ -72,8 +74,18 @@ async def async_client(db_session):
     async def override_get_db():
         yield db_session
 
+    async def override_get_classifier():
+        from app.services.entry_classification.client import LLMClassifier
+
+        class _Stub(LLMClassifier):
+            async def classify(self, uc, us):
+                return ClassificationResponse(type="activity")
+
+        yield _Stub()
+
     app = get_app()
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_classifier] = override_get_classifier
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

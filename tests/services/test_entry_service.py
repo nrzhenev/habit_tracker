@@ -48,6 +48,7 @@ class TestProcessEntry:
 
         assert entry.content == "Spent 100 on food"
         assert entry.user_id == user_with_settings.id
+        assert entry.entry_type == "expense"
 
     async def test_should_create_entry_with_activity_type(
         self, db_session, user_with_settings
@@ -63,6 +64,7 @@ class TestProcessEntry:
 
         assert entry.user_id == user_with_settings.id
         assert entry.content == "Ran for 30 minutes"
+        assert entry.entry_type == "activity"
 
     async def test_should_create_entry_with_event_type(
         self, db_session, user_with_settings
@@ -77,6 +79,7 @@ class TestProcessEntry:
         )
 
         assert entry.content == "Woke up"
+        assert entry.entry_type == "event"
 
     async def test_should_use_default_settings_when_user_has_none(
         self, db_session, user
@@ -92,6 +95,7 @@ class TestProcessEntry:
 
         assert entry.content == "Ran for 30 minutes"
         assert entry.user_id == user.id
+        assert entry.entry_type == "activity"
 
     async def test_should_rollback_on_unexpected_error(
         self, db_session, user_with_settings

@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import bearer_scheme, decode_token
 from app.database import get_db
 from app.models.user import User
+from app.services.entry_classification.client import LLMClassifier
 
 
 def _require_credential(param: Any):
@@ -37,3 +38,7 @@ async def get_current_user(
     _require_credential(user)
 
     return user
+
+
+def get_classifier() -> LLMClassifier:
+    return LLMClassifier()

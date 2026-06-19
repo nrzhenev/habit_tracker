@@ -14,3 +14,4 @@ class EntryRead(BaseModel):
     user_id: int
     content: str
     created_at: datetime.datetime
+    entry_type: str | None = None

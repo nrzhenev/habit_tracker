@@ -87,24 +87,16 @@ async def test_should_not_return_other_user_entries(
     assert response.json() == []
 
 
-async def test_should_return_204_when_delete_entry(
-    async_client, auth_headers, entry
-):
-    response = await async_client.delete(
-        f"/entries/{entry.id}", headers=auth_headers
-    )
+async def test_should_return_204_when_delete_entry(async_client, auth_headers, entry):
+    response = await async_client.delete(f"/entries/{entry.id}", headers=auth_headers)
     assert response.status_code == 204
 
-    get_response = await async_client.get(
-        "/entries", headers=auth_headers
-    )
+    get_response = await async_client.get("/entries", headers=auth_headers)
     assert get_response.status_code == 200
     assert get_response.json() == []
 
 
-async def test_should_return_401_when_delete_entry_without_auth(
-    async_client, entry
-):
+async def test_should_return_401_when_delete_entry_without_auth(async_client, entry):
     response = await async_client.delete(f"/entries/{entry.id}")
     assert response.status_code == 401
 
@@ -112,9 +104,7 @@ async def test_should_return_401_when_delete_entry_without_auth(
 async def test_should_return_404_when_delete_entry_not_found(
     async_client, auth_headers
 ):
-    response = await async_client.delete(
-        "/entries/99999", headers=auth_headers
-    )
+    response = await async_client.delete("/entries/99999", headers=auth_headers)
     assert response.status_code == 404
 
 

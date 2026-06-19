@@ -6,3 +6,8 @@ class UserSettingsSchema(BaseModel):
 
     default_currency: str = "USD"
     timezone: str = "UTC"
+
+
+class UserSettingsUpdate(BaseModel):
+    default_currency: str | None = None
+    timezone: str | None = None

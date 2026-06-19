@@ -3,11 +3,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
-from app.database import get_db
 from app.entry.model import Entry
-from app.models.event import Event
+from app.db.session import get_db
+from app.entry.model import Entry
+from app.event.model import Event
 from app.models.user import User
-from app.schemas.event import EventCreate, EventUpdate
+from app.event.schema import EventCreate, EventUpdate
 
 router = APIRouter(prefix="/events", tags=["events"])
 

@@ -32,3 +32,12 @@ class ExpenseRead(BaseModel):
     category: str | None
     place: str | None
     items: list[str]
+
+
+class ExpenseParsed(BaseModel):
+    occurred_at: datetime.datetime | None = None
+    currency: str
+    items: list[str]
+    amount: float | None = None
+    category: str | None = None
+    place: str | None = None

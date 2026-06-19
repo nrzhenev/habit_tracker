@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import JSON, DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base
+from app.db.base import Base
 
 
 class Expense(Base):

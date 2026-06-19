@@ -20,3 +20,8 @@ class EventRead(BaseModel):
     entry_id: int
     occurred_at: datetime.datetime
     action: str
+
+
+class EventParsed(BaseModel):
+    action: str
+    occurred_at: datetime.datetime | None = None

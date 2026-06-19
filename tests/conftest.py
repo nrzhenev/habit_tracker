@@ -7,10 +7,11 @@ from app.api.deps import get_classifier
 from app.config import settings
 from app.core.security import hash_password, create_access_token
 from app.schemas.parsing import ClassificationResponse
-from app.database import get_db
+from app.db.session import get_db
 from app.main import get_app
 from app.models import User
-from app.models.base import Base
+from app.db.base import Base
+from app.entry.model import Entry
 
 TEST_DB_NAME = f"{settings.POSTGRES_DB}_test"
 TEST_USER_PASSWORD = "secret"
@@ -109,3 +110,15 @@ async def other_auth_headers(db_session):
     await db_session.refresh(other_user)
     token = create_access_token({"sub": str(other_user.id)})
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest_asyncio.fixture
+async def entry(db_session, user):
+    entry = Entry(
+        user_id=user.id,
+        content="Test entry content",
+    )
+    db_session.add(entry)
+    await db_session.commit()
+    await db_session.refresh(entry)
+    return entry

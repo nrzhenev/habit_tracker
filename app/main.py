@@ -4,13 +4,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import engine
-from app.models.base import Base
+from app.db.base import Base
+from app.db.session import engine
 from app.api.activities import router as activities_router
 from app.api.auth import router as auth_router
-from app.entry.api import router as entries_router
-from app.api.events import router as events_router
-from app.api.expenses import router as expenses_router
+from app.entry.router import router as entries_router
+from app.event.router import router as events_router
+from app.expense.router import router as expenses_router
 from app.api.users import router as users_router
 
 

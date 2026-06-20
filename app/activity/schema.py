@@ -28,3 +28,9 @@ class ActivityRead(BaseModel):
 
 class ActivityDetail(ActivityRead):
     type: Literal["activity"] = "activity"
+
+
+class ActivityParsed(BaseModel):
+    started_at: datetime.datetime | None = None
+    ended_at: datetime.datetime | None = None
+    category: str | None = None

@@ -1,4 +1,4 @@
-from app.models.activity import Activity
+from app.activity.model import Activity
 from app.db.base import Base
 from app.entry.model import Entry
 from app.event.model import Event

@@ -1,12 +1,6 @@
-import datetime
-
-import pytest
 import pytest_asyncio
 
-from app.core.security import create_access_token, hash_password
-from app.models.activity import Activity
-from app.event.model import Event
-from app.models.user import User
+from app.activity.model import Activity
 
 
 @pytest_asyncio.fixture

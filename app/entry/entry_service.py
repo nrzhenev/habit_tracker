@@ -1,9 +1,9 @@
 from sqlalchemy import select
 
 from app.entry.model import Entry
-from app.models.user import User
-from app.models.user_settings import UserSettings
-from app.schemas.user_settings import UserSettingsSchema
+from app.user.model import User
+from app.user.model import UserSettings
+from app.user.schema import UserSettingsSchema
 
 
 async def process_entry(user_content: str, user: User, db, *, classifier) -> Entry:

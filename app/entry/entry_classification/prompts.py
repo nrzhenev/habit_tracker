@@ -1,7 +1,7 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from app.schemas.user_settings import UserSettingsSchema
+from app.user.schema import UserSettingsSchema
 
 
 def _current_time(user_settings: UserSettingsSchema) -> str:

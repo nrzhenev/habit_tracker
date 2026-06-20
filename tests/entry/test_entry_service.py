@@ -3,8 +3,8 @@ import pytest_asyncio
 from sqlalchemy import select
 
 from app.entry.model import Entry
-from app.models.user_settings import UserSettings
-from app.schemas.parsing import ClassificationResponse
+from app.user.model import UserSettings
+from app.entry.schema import ClassificationResponse
 from app.entry.entry_classification.client import LLMClassifier
 from app.entry.entry_service import process_entry
 

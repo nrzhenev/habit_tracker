@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user
-from app.entry.model import Entry
+from app.core.deps import get_current_user
 from app.db.session import get_db
+from app.event.schema import EventCreate, EventUpdate
 from app.entry.model import Entry
 from app.event.model import Event
-from app.models.user import User
-from app.event.schema import EventCreate, EventUpdate
+from app.user.model import User
+
 
 router = APIRouter(prefix="/events", tags=["events"])
 

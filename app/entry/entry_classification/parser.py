@@ -1,6 +1,6 @@
 import json
 
-from app.schemas.parsing import ClassificationResponse
+from app.entry.schema import ClassificationResponse
 
 ALLOWED_TYPES = frozenset({"expense", "activity", "event"})
 

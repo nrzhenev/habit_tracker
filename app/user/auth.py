@@ -9,8 +9,8 @@ from app.core.security import (
     verify_password,
 )
 from app.db.session import get_db
-from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.user.model import User
+from app.user.schema import LoginRequest, RegisterRequest, TokenResponse
 
 router = APIRouter(tags=["auth"])
 

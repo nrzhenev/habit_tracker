@@ -7,8 +7,8 @@ from app.core.groq_client import (
     ChatMessage,
     GroqApiError,
 )
-from app.schemas.parsing import ClassificationResponse
-from app.schemas.user_settings import UserSettingsSchema
+from app.entry.schema import ClassificationResponse
+from app.user.schema import UserSettingsSchema
 from app.entry.entry_classification.client import LLMClassifier
 
 pytestmark = pytest.mark.unit

@@ -1,4 +1,5 @@
 import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -15,3 +16,7 @@ class EntryRead(BaseModel):
     content: str
     created_at: datetime.datetime
     entry_type: str | None = None
+
+
+class ClassificationResponse(BaseModel):
+    type: Literal["expense", "activity", "event"]

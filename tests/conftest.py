@@ -4,14 +4,14 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.api.deps import get_classifier
 from app.config import settings
-from app.core.security import hash_password, create_access_token
+from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.db.session import get_db
+from app.user.model import User
 from app.entry.model import Entry
-from app.models import User
-from app.schemas.parsing import ClassificationResponse
+from app.entry.schema import ClassificationResponse
+from app.entry.deps import get_classifier
 from app.main import get_app
 
 TEST_DB_NAME = f"{settings.POSTGRES_DB}_test"

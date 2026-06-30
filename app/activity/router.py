@@ -1,141 +1,60 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.activity.activity_service import create_activity as create_activity_service
+from app.activity.activity_service import update_activity as update_activity_service
+from app.activity.deps import get_activity_parser, get_owned_activity
+from app.activity.model import Activity
+from app.activity.parsing.client import LLMActivityParser
+from app.activity.schema import ActivityRead, ActivityUpdate
 from app.core.deps import get_current_user
 from app.db.session import get_db
-from app.activity.model import Activity
-from app.activity.schema import ActivityCreate, ActivityUpdate
 from app.entry.model import Entry
 from app.user.model import User
 
 router = APIRouter(prefix="/activities", tags=["activities"])
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ActivityRead, status_code=status.HTTP_201_CREATED)
 async def create_activity(
-    activity_data: ActivityCreate,
+    content: str = Body(...),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    parser: LLMActivityParser = Depends(get_activity_parser),
 ):
-    entry = await db.get(Entry, activity_data.entry_id)
-    if not entry or entry.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found"
-        )
-
-    existing = await db.scalar(
-        select(Activity).where(Activity.entry_id == activity_data.entry_id)
-    )
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Activity already exists for this entry",
-        )
-
-    if (
-        activity_data.started_at
-        and activity_data.ended_at
-        and activity_data.ended_at <= activity_data.started_at
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="ended_at must be after started_at",
-        )
-
-    activity = Activity(**activity_data.model_dump())
-    db.add(activity)
-    await db.commit()
-    await db.refresh(activity)
-    return activity
+    return await create_activity_service(content, user, db, parser=parser)
 
 
-@router.get("")
+@router.get("", response_model=list[ActivityRead])
 async def list_activities(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ):
     result = await db.execute(
-        select(Activity).join(Entry).where(Entry.user_id == current_user.id)
+        select(Activity).join(Entry).where(Entry.user_id == user.id)
     )
     return result.scalars().all()
 
 
-@router.get("/{activity_id}")
-async def get_activity(
-    activity_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    activity = await db.get(Activity, activity_id)
-    if not activity:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
-        )
-
-    entry = await db.get(Entry, activity.entry_id)
-    if entry.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
-        )
-
+@router.get("/{activity_id}", response_model=ActivityRead)
+async def get_activity(activity: Activity = Depends(get_owned_activity)):
     return activity
 
 
-@router.patch("/{activity_id}")
+@router.patch("/{activity_id}", response_model=ActivityRead)
 async def update_activity(
-    activity_id: int,
     activity_data: ActivityUpdate,
+    activity: Activity = Depends(get_owned_activity),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    activity = await db.get(Activity, activity_id)
-    if not activity:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
-        )
-
-    entry = await db.get(Entry, activity.entry_id)
-    if entry.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
-        )
-
-    for field, value in activity_data.model_dump(exclude_unset=True).items():
-        setattr(activity, field, value)
-
-    if (
-        activity.started_at
-        and activity.ended_at
-        and activity.ended_at <= activity.started_at
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="ended_at must be after started_at",
-        )
-
-    await db.commit()
-    await db.refresh(activity)
-    return activity
+    return await update_activity_service(activity, activity_data, db)
 
 
 @router.delete("/{activity_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_activity(
-    activity_id: int,
+    activity: Activity = Depends(get_owned_activity),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    activity = await db.get(Activity, activity_id)
-    if not activity:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
-        )
-
-    entry = await db.get(Entry, activity.entry_id)
-    if entry.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Activity not found"
-        )
-
     await db.delete(activity)
     await db.commit()

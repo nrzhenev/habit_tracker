@@ -1,66 +1,81 @@
 import pytest
+import datetime
+
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+
+from app.event.schema import EventParsed
+from app.event.deps import get_event_parser
+from app.db.session import get_db
+
 
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture
-def event_payload():
-    return {
-        "action": "meeting",
-    }
+@pytest_asyncio.fixture
+async def async_client(app, db_session):
+    async def override_get_db():
+        yield db_session
+
+    async def override_get_event_parser():
+        from app.event.parsing.client import LLMEventParser
+
+        class _Stub(LLMEventParser):
+            async def parse(self, content, settings):
+                return EventParsed(
+                    action="meeting",
+                    occurred_at=datetime.datetime(
+                        2025, 1, 1, tzinfo=datetime.timezone.utc
+                    ),
+                )
+
+        yield _Stub()
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_event_parser] = override_get_event_parser
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
 
 
-async def test_should_return_201_when_create_event(
-    async_client, auth_headers, entry, event_payload
-):
-    payload = {"entry_id": entry.id, **event_payload}
+async def test_should_return_201_when_create_event(async_client, auth_headers):
     response = await async_client.post(
         "/events",
-        json=payload,
+        json="Had a meeting with the team",
         headers=auth_headers,
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["entry_id"] == entry.id
     assert data["action"] == "meeting"
     assert "id" in data
+    assert "entry_id" in data
     assert data["occurred_at"] is not None
 
 
 async def test_should_return_401_when_create_event_without_auth(
-    async_client, entry, event_payload
+    async_client,
 ):
-    payload = {"entry_id": entry.id, **event_payload}
-    response = await async_client.post("/events", json=payload)
+    response = await async_client.post(
+        "/events",
+        json="Had a meeting",
+    )
     assert response.status_code == 401
 
 
-async def test_should_return_404_when_entry_not_found(
-    async_client, auth_headers, event_payload
+async def test_should_return_422_when_create_event_missing_content(
+    async_client, auth_headers
 ):
-    payload = {"entry_id": 99999, **event_payload}
-    response = await async_client.post("/events", json=payload, headers=auth_headers)
-    assert response.status_code == 404
-
-
-async def test_should_return_404_when_entry_not_owned(
-    async_client, entry, event_payload, other_auth_headers
-):
-    payload = {"entry_id": entry.id, **event_payload}
     response = await async_client.post(
         "/events",
-        json=payload,
-        headers=other_auth_headers,
+        json=42,
+        headers=auth_headers,
     )
-    assert response.status_code == 404
-
-
-async def test_should_return_409_when_event_already_exists(
-    async_client, auth_headers, event, event_payload
-):
-    payload = {"entry_id": event.entry_id, **event_payload}
-    response = await async_client.post("/events", json=payload, headers=auth_headers)
-    assert response.status_code == 409
+    assert response.status_code == 422
 
 
 async def test_should_return_200_when_list_events(async_client, auth_headers, event):

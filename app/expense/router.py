@@ -1,50 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
+from app.core.time_utils import current_datetime
 from app.db.session import get_db
 from app.entry.model import Entry
 from app.expense.deps import get_expense_parser
 from app.expense.model import Expense
 from app.expense.parsing.client import LLMExpenseParser
-from app.expense.schema import (
-    ExpenseCreate,
-    ExpenseParseRequest,
-    ExpenseParsed,
-    ExpenseUpdate,
-)
+from app.expense.schema import ExpenseParsed, ExpenseRead, ExpenseUpdate
 from app.user.model import User, UserSettings
 from app.user.schema import UserSettingsSchema
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ExpenseRead, status_code=status.HTTP_201_CREATED)
 async def create_expense(
-    expense_data: ExpenseCreate,
+    content: str = Body(...),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    parser: LLMExpenseParser = Depends(get_expense_parser),
 ):
-    entry = await db.get(Entry, expense_data.entry_id)
-    if not entry or entry.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found"
-        )
+    entry = Entry(user_id=user.id, content=content, entry_type="expense")
+    db.add(entry)
+    await db.flush()
 
-    existing = await db.scalar(
-        select(Expense).where(Expense.entry_id == expense_data.entry_id)
-    )
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Expense already exists for this entry",
-        )
+    try:
+        user_settings = await _load_user_settings(db, user)
+        parsed = await parser.parse(content, user_settings)
 
-    expense = Expense(**expense_data.model_dump())
-    db.add(expense)
-    await db.commit()
-    await db.refresh(expense)
+        if parsed.occurred_at is None:
+            parsed.occurred_at = current_datetime(user_settings)
+
+        expense = Expense(
+            entry_id=entry.id,
+            occurred_at=parsed.occurred_at,
+            amount=parsed.amount,
+            currency=parsed.currency,
+            category=parsed.category,
+            place=parsed.place,
+            items=parsed.items,
+        )
+        db.add(expense)
+        await db.commit()
+        await db.refresh(expense)
+    except Exception:
+        await db.rollback()
+        raise
+
     return expense
 
 
@@ -141,10 +146,10 @@ async def _load_user_settings(db, user):
 
 @router.post("/parse", response_model=ExpenseParsed)
 async def parse_expense(
-    body: ExpenseParseRequest,
+    content: str = Body(...),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     parser: LLMExpenseParser = Depends(get_expense_parser),
 ):
     user_settings = await _load_user_settings(db, user)
-    return await parser.parse(body.content, user_settings)
+    return await parser.parse(content, user_settings)

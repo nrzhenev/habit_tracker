@@ -1,43 +1,51 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
+from app.core.time_utils import current_datetime
 from app.db.session import get_db
-from app.event.schema import EventCreate, EventUpdate
 from app.entry.model import Entry
+from app.event.deps import get_event_parser
 from app.event.model import Event
-from app.user.model import User
-
+from app.event.parsing.client import LLMEventParser
+from app.event.schema import EventRead, EventUpdate
+from app.user.model import User, UserSettings
+from app.user.schema import UserSettingsSchema
 
 router = APIRouter(prefix="/events", tags=["events"])
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=EventRead, status_code=status.HTTP_201_CREATED)
 async def create_event(
-    event_data: EventCreate,
+    content: str = Body(...),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    parser: LLMEventParser = Depends(get_event_parser),
 ):
-    entry = await db.get(Entry, event_data.entry_id)
-    if not entry or entry.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Entry not found"
-        )
+    entry = Entry(user_id=user.id, content=content, entry_type="event")
+    db.add(entry)
+    await db.flush()
 
-    existing = await db.scalar(
-        select(Event).where(Event.entry_id == event_data.entry_id)
-    )
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Event already exists for this entry",
-        )
+    try:
+        user_settings = await _load_user_settings(db, user)
+        parsed = await parser.parse(content, user_settings)
 
-    event = Event(**event_data.model_dump())
-    db.add(event)
-    await db.commit()
-    await db.refresh(event)
+        if parsed.occurred_at is None:
+            parsed.occurred_at = current_datetime(user_settings)
+
+        event = Event(
+            entry_id=entry.id,
+            action=parsed.action,
+            occurred_at=parsed.occurred_at,
+        )
+        db.add(event)
+        await db.commit()
+        await db.refresh(event)
+    except Exception:
+        await db.rollback()
+        raise
+
     return event
 
 
@@ -120,3 +128,13 @@ async def delete_event(
 
     await db.delete(event)
     await db.commit()
+
+
+async def _load_user_settings(db, user):
+    result = await db.execute(
+        select(UserSettings).where(UserSettings.user_id == user.id)
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        return UserSettingsSchema.model_validate(row)
+    return UserSettingsSchema()

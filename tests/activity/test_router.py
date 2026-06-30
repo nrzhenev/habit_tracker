@@ -1,113 +1,79 @@
 import pytest
+import datetime
+
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+
+from app.activity.schema import ActivityParsed
+from app.activity.deps import get_activity_parser
+from app.db.session import get_db
 
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture
-def activity_payload():
-    return {
-        "started_at": "2025-01-01T00:00:00Z",
-        "ended_at": "2025-01-01T01:00:00Z",
-        "category": "running",
-    }
+@pytest_asyncio.fixture
+async def async_client(app, db_session):
+    async def override_get_db():
+        yield db_session
+
+    async def override_get_activity_parser():
+        from app.activity.parsing.client import LLMActivityParser
+
+        class _Stub(LLMActivityParser):
+            async def parse(self, content, settings):
+                return ActivityParsed(
+                    started_at=datetime.datetime(
+                        2025, 1, 1, 10, tzinfo=datetime.timezone.utc
+                    ),
+                    ended_at=datetime.datetime(
+                        2025, 1, 1, 10, 30, tzinfo=datetime.timezone.utc
+                    ),
+                    category="running",
+                )
+
+        yield _Stub()
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_activity_parser] = override_get_activity_parser
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
 
 
-async def test_should_return_201_when_create_activity(
-    async_client, auth_headers, entry, activity_payload
-):
-    payload = {"entry_id": entry.id, **activity_payload}
+async def test_should_return_201_when_create_activity(async_client, auth_headers):
     response = await async_client.post(
         "/activities",
-        json=payload,
+        json="Ran for 30 minutes",
         headers=auth_headers,
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["entry_id"] == entry.id
     assert data["category"] == "running"
     assert "id" in data
-
-
-async def test_should_return_201_when_optional_fields_none(
-    async_client, auth_headers, entry
-):
-    response = await async_client.post(
-        "/activities",
-        json={"entry_id": entry.id},
-        headers=auth_headers,
-    )
-    assert response.status_code == 201
-    data = response.json()
-    assert data["started_at"] is None
-    assert data["ended_at"] is None
-    assert data["category"] is None
+    assert "entry_id" in data
 
 
 async def test_should_return_401_when_create_activity_without_auth(
-    async_client, entry, activity_payload
+    async_client,
 ):
-    payload = {"entry_id": entry.id, **activity_payload}
-    response = await async_client.post("/activities", json=payload)
+    response = await async_client.post(
+        "/activities",
+        json="Ran for 30 minutes",
+    )
     assert response.status_code == 401
 
 
-async def test_should_return_404_when_entry_not_found(
-    async_client, auth_headers, activity_payload
-):
-    payload = {"entry_id": 99999, **activity_payload}
-    response = await async_client.post(
-        "/activities", json=payload, headers=auth_headers
-    )
-    assert response.status_code == 404
-
-
-async def test_should_return_404_when_entry_not_owned(
-    async_client, entry, activity_payload, other_auth_headers
-):
-    payload = {"entry_id": entry.id, **activity_payload}
-    response = await async_client.post(
-        "/activities",
-        json=payload,
-        headers=other_auth_headers,
-    )
-    assert response.status_code == 404
-
-
-async def test_should_return_409_when_activity_already_exists(
-    async_client, auth_headers, activity, activity_payload
-):
-    payload = {"entry_id": activity.entry_id, **activity_payload}
-    response = await async_client.post(
-        "/activities", json=payload, headers=auth_headers
-    )
-    assert response.status_code == 409
-
-
-async def test_should_return_422_when_create_with_ended_at_before_started_at(
-    async_client, auth_headers, entry
+async def test_should_return_422_when_create_activity_missing_content(
+    async_client, auth_headers
 ):
     response = await async_client.post(
         "/activities",
-        json={
-            "entry_id": entry.id,
-            "started_at": "2025-01-01T02:00:00Z",
-            "ended_at": "2025-01-01T01:00:00Z",
-        },
-        headers=auth_headers,
-    )
-    assert response.status_code == 422
-
-
-async def test_should_return_422_when_create_with_ended_at_equal_started_at(
-    async_client, auth_headers, entry
-):
-    response = await async_client.post(
-        "/activities",
-        json={
-            "entry_id": entry.id,
-            "started_at": "2025-01-01T01:00:00Z",
-            "ended_at": "2025-01-01T01:00:00Z",
-        },
+        json=42,
         headers=auth_headers,
     )
     assert response.status_code == 422

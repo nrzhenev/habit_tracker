@@ -1,23 +1,14 @@
 import pytest
+import datetime
 
 import pytest_asyncio
-import datetime
 from httpx import ASGITransport, AsyncClient
 
+from app.expense.schema import ExpenseParsed
 from app.expense.deps import get_expense_parser
 from app.db.session import get_db
-from app.expense.schema import ExpenseParsed
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.fixture
-def expense_payload():
-    return {
-        "occurred_at": "2025-01-01T00:00:00Z",
-        "currency": "USD",
-        "items": ["coffee", "lunch"],
-    }
 
 
 @pytest_asyncio.fixture
@@ -37,8 +28,8 @@ async def async_client(app, db_session):
                     amount=500.0,
                     currency="RUB",
                     category="food",
-                    place="Перекресток",
-                    items=["хлеб", "молоко"],
+                    place="Perekrestok",
+                    items=["bread", "milk"],
                 )
 
         yield _Stub()
@@ -55,60 +46,41 @@ async def async_client(app, db_session):
         app.dependency_overrides.clear()
 
 
-async def test_should_return_201_when_create_expense(
-    async_client, auth_headers, entry, expense_payload
-):
-    payload = {"entry_id": entry.id, **expense_payload}
+async def test_should_return_201_when_create_expense(async_client, auth_headers):
     response = await async_client.post(
         "/expenses",
-        json=payload,
+        json="Bought bread and milk for 500 rubles at Perekrestok",
         headers=auth_headers,
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["entry_id"] == entry.id
-    assert data["currency"] == "USD"
-    assert data["items"] == ["coffee", "lunch"]
-    assert data["amount"] is None
-    assert data["category"] is None
-    assert data["place"] is None
+    assert data["amount"] == 500.0
+    assert data["currency"] == "RUB"
+    assert data["category"] == "food"
+    assert data["items"] == ["bread", "milk"]
     assert "id" in data
+    assert "entry_id" in data
 
 
 async def test_should_return_401_when_create_expense_without_auth(
-    async_client, entry, expense_payload
+    async_client,
 ):
-    payload = {"entry_id": entry.id, **expense_payload}
-    response = await async_client.post("/expenses", json=payload)
+    response = await async_client.post(
+        "/expenses",
+        json="Bought coffee",
+    )
     assert response.status_code == 401
 
 
-async def test_should_return_404_when_entry_not_found(
-    async_client, auth_headers, expense_payload
+async def test_should_return_422_when_create_expense_missing_content(
+    async_client, auth_headers
 ):
-    payload = {"entry_id": 99999, **expense_payload}
-    response = await async_client.post("/expenses", json=payload, headers=auth_headers)
-    assert response.status_code == 404
-
-
-async def test_should_return_404_when_entry_not_owned(
-    async_client, entry, expense_payload, other_auth_headers
-):
-    payload = {"entry_id": entry.id, **expense_payload}
     response = await async_client.post(
         "/expenses",
-        json=payload,
-        headers=other_auth_headers,
+        json=42,
+        headers=auth_headers,
     )
-    assert response.status_code == 404
-
-
-async def test_should_return_409_when_expense_already_exists(
-    async_client, auth_headers, expense, expense_payload
-):
-    payload = {"entry_id": expense.entry_id, **expense_payload}
-    response = await async_client.post("/expenses", json=payload, headers=auth_headers)
-    assert response.status_code == 409
+    assert response.status_code == 422
 
 
 async def test_should_return_200_when_list_expenses(
@@ -257,7 +229,7 @@ async def test_should_return_404_when_delete_expense_not_owned(
 async def test_should_return_200_when_parse_expense(async_client, auth_headers):
     response = await async_client.post(
         "/expenses/parse",
-        json={"content": "Test content"},
+        json="Test content",
         headers=auth_headers,
     )
     assert response.status_code == 200
@@ -270,15 +242,6 @@ async def test_should_return_200_when_parse_expense(async_client, auth_headers):
 async def test_should_return_401_when_parse_without_auth(async_client):
     response = await async_client.post(
         "/expenses/parse",
-        json={"content": "Bought coffee"},
+        json="Bought coffee",
     )
     assert response.status_code == 401
-
-
-async def test_should_return_422_when_parse_missing_content(async_client, auth_headers):
-    response = await async_client.post(
-        "/expenses/parse",
-        json={},
-        headers=auth_headers,
-    )
-    assert response.status_code == 422

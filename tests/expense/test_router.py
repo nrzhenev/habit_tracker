@@ -1,5 +1,13 @@
 import pytest
 
+import pytest_asyncio
+import datetime
+from httpx import ASGITransport, AsyncClient
+
+from app.expense.deps import get_expense_parser
+from app.db.session import get_db
+from app.expense.schema import ExpenseParsed
+
 pytestmark = pytest.mark.integration
 
 
@@ -10,6 +18,41 @@ def expense_payload():
         "currency": "USD",
         "items": ["coffee", "lunch"],
     }
+
+
+@pytest_asyncio.fixture
+async def async_client(app, db_session):
+    async def override_get_db():
+        yield db_session
+
+    async def override_get_expense_parser():
+        from app.expense.parsing.client import LLMExpenseParser
+
+        class _Stub(LLMExpenseParser):
+            async def parse(self, content, settings):
+                return ExpenseParsed(
+                    occurred_at=datetime.datetime(
+                        2025, 1, 1, tzinfo=datetime.timezone.utc
+                    ),
+                    amount=500.0,
+                    currency="RUB",
+                    category="food",
+                    place="Перекресток",
+                    items=["хлеб", "молоко"],
+                )
+
+        yield _Stub()
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_expense_parser] = override_get_expense_parser
+
+    transport = ASGITransport(app=app)
+
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
 
 
 async def test_should_return_201_when_create_expense(
@@ -209,3 +252,33 @@ async def test_should_return_404_when_delete_expense_not_owned(
         headers=other_auth_headers,
     )
     assert response.status_code == 404
+
+
+async def test_should_return_200_when_parse_expense(async_client, auth_headers):
+    response = await async_client.post(
+        "/expenses/parse",
+        json={"content": "Test content"},
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["amount"] == 500.0
+    assert "currency" in data
+    assert "category" in data
+
+
+async def test_should_return_401_when_parse_without_auth(async_client):
+    response = await async_client.post(
+        "/expenses/parse",
+        json={"content": "Bought coffee"},
+    )
+    assert response.status_code == 401
+
+
+async def test_should_return_422_when_parse_missing_content(async_client, auth_headers):
+    response = await async_client.post(
+        "/expenses/parse",
+        json={},
+        headers=auth_headers,
+    )
+    assert response.status_code == 422

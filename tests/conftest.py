@@ -72,10 +72,17 @@ async def user(db_session):
 
 
 @pytest_asyncio.fixture
-async def async_client(db_session):
+async def app(db_session):
     async def override_get_db():
         yield db_session
 
+    app = get_app()
+    app.dependency_overrides[get_db] = override_get_db
+    yield app
+
+
+@pytest_asyncio.fixture
+async def async_client(app):
     async def override_get_classifier():
         from app.entry.entry_classification.client import LLMClassifier
 
@@ -85,13 +92,13 @@ async def async_client(db_session):
 
         yield _Stub()
 
-    app = get_app()
-    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_classifier] = override_get_classifier
-
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        yield client
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture

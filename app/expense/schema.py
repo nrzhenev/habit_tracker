@@ -34,6 +34,10 @@ class ExpenseRead(BaseModel):
     items: list[str]
 
 
+class ExpenseParseRequest(BaseModel):
+    content: str
+
+
 class ExpenseParsed(BaseModel):
     occurred_at: datetime.datetime | None = None
     currency: str

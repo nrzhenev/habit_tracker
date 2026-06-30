@@ -5,9 +5,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_current_user
 from app.db.session import get_db
 from app.entry.model import Entry
+from app.expense.deps import get_expense_parser
 from app.expense.model import Expense
-from app.expense.schema import ExpenseCreate, ExpenseUpdate
-from app.user.model import User
+from app.expense.parsing.client import LLMExpenseParser
+from app.expense.schema import (
+    ExpenseCreate,
+    ExpenseParseRequest,
+    ExpenseParsed,
+    ExpenseUpdate,
+)
+from app.user.model import User, UserSettings
+from app.user.schema import UserSettingsSchema
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -119,3 +127,24 @@ async def delete_expense(
 
     await db.delete(expense)
     await db.commit()
+
+
+async def _load_user_settings(db, user):
+    result = await db.execute(
+        select(UserSettings).where(UserSettings.user_id == user.id)
+    )
+    row = result.scalar_one_or_none()
+    if row:
+        return UserSettingsSchema.model_validate(row)
+    return UserSettingsSchema()
+
+
+@router.post("/parse", response_model=ExpenseParsed)
+async def parse_expense(
+    body: ExpenseParseRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    parser: LLMExpenseParser = Depends(get_expense_parser),
+):
+    user_settings = await _load_user_settings(db, user)
+    return await parser.parse(body.content, user_settings)

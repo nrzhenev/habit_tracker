@@ -89,3 +89,27 @@ async def test_should_return_401_when_update_settings_without_auth(async_client)
     )
 
     assert response.status_code == 401
+
+
+async def test_should_return_422_when_invalid_currency(async_client, user):
+    token = create_access_token({"sub": str(user.id)})
+
+    response = await async_client.patch(
+        "/me/settings",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"default_currency": "ZZZ"},
+    )
+
+    assert response.status_code == 422
+
+
+async def test_should_return_422_when_invalid_timezone(async_client, user):
+    token = create_access_token({"sub": str(user.id)})
+
+    response = await async_client.patch(
+        "/me/settings",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"timezone": "UTC+4"},
+    )
+
+    assert response.status_code == 422

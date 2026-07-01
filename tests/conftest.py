@@ -1,5 +1,6 @@
 import asyncpg
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -14,6 +15,33 @@ from app.main import get_app
 
 TEST_DB_NAME = f"{settings.POSTGRES_DB}_test"
 TEST_USER_PASSWORD = "secret"
+
+DOMAIN_MARKERS = {"user", "activity", "expense", "event", "entry", "core"}
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Register domain markers for it to work without warnings."""
+    for domain in sorted(DOMAIN_MARKERS):
+        config.addinivalue_line("markers", f"{domain}: domain tests {domain}")
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Item],
+) -> None:
+    """add test markers by root directory"""
+
+    tests_root = config.rootpath / "tests"
+    for item in items:
+        try:
+            rel = item.path.relative_to(tests_root)
+        except ValueError:
+            continue
+        if not rel.parts:
+            continue
+        domain = rel.parts[0]
+        if domain in DOMAIN_MARKERS:
+            item.add_marker(getattr(pytest.mark, domain))
 
 
 def _test_db_url() -> str:

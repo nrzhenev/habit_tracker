@@ -6,7 +6,7 @@ from app.entry.model import Entry
 from app.user.model import UserSettings
 from app.entry.schema import ClassificationResponse
 from app.entry.entry_classification.client import LLMClassifier
-from app.entry.entry_service import process_entry
+from app.entry.service import process_entry
 
 pytestmark = pytest.mark.integration
 

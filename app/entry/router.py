@@ -12,7 +12,7 @@ from app.entry.model import Entry
 from app.activity.schema import ActivityDetail
 from app.entry.schema import EntryCreate, EntryRead
 from app.entry.entry_classification.client import LLMClassifier
-from app.entry.entry_service import process_entry
+from app.entry.service import process_entry
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 

@@ -1,5 +1,5 @@
 from app.config import settings
-from app.core.groq_client import groq_client, GroqClient
+from app.core.llm_client import groq_client, LLMClient
 from app.entry.schema import ClassificationResponse
 from app.user.schema import UserSettingsSchema
 from app.entry.entry_classification.parser import parse_llm_response
@@ -7,7 +7,7 @@ from app.entry.entry_classification.prompts import build_classification_prompt
 
 
 class LLMClassifier:
-    def __init__(self, client: GroqClient | None = None):
+    def __init__(self, client: LLMClient | None = None):
         self._client = client or groq_client
 
     async def classify(

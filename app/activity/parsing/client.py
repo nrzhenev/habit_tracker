@@ -1,5 +1,5 @@
 from app.config import settings
-from app.core.groq_client import GroqClient, groq_client
+from app.core.llm_client import LLMClient, groq_client
 from app.user.schema import UserSettingsSchema
 from app.activity.parsing.parser import parse_activity_response
 from app.activity.parsing.prompts import build_activity_parsing_prompt
@@ -7,7 +7,7 @@ from app.activity.schema import ActivityParsed
 
 
 class LLMActivityParser:
-    def __init__(self, client: GroqClient | None = None):
+    def __init__(self, client: LLMClient | None = None):
         self._client = client or groq_client
 
     async def parse(

@@ -1,12 +1,13 @@
 import pytest
 
-from app.core.groq_client import (
+from app.core.llm_client.base import (
     ChatCompletionChoice,
     ChatCompletionResponse,
     ChatCompletionUsage,
     ChatMessage,
-    GroqApiError,
+    LLMClient,
 )
+from app.core.llm_client.groq import GroqApiError
 from app.entry.schema import ClassificationResponse
 from app.user.schema import UserSettingsSchema
 from app.entry.entry_classification.client import LLMClassifier
@@ -14,7 +15,7 @@ from app.entry.entry_classification.client import LLMClassifier
 pytestmark = pytest.mark.unit
 
 
-class StubGroqClient:
+class StubGroqClient(LLMClient):
     def __init__(
         self,
         *,

@@ -1,5 +1,5 @@
 from app.config import settings
-from app.core.groq_client import GroqClient, groq_client
+from app.core.llm_client import LLMClient, groq_client
 from app.user.schema import UserSettingsSchema
 from app.event.parsing.parser import parse_event_response
 from app.event.parsing.prompts import build_event_parsing_prompt
@@ -7,7 +7,7 @@ from app.event.schema import EventParsed
 
 
 class LLMEventParser:
-    def __init__(self, client: GroqClient | None = None):
+    def __init__(self, client: LLMClient | None = None):
         self._client = client or groq_client
 
     async def parse(

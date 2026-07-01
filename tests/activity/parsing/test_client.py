@@ -2,13 +2,14 @@ import datetime
 
 import pytest
 
-from app.core.groq_client import (
+from app.core.llm_client.base import (
     ChatCompletionChoice,
     ChatCompletionResponse,
     ChatCompletionUsage,
     ChatMessage,
-    GroqApiError,
+    LLMClient,
 )
+from app.core.llm_client.groq import GroqApiError
 from app.user.schema import UserSettingsSchema
 from app.activity.parsing.client import LLMActivityParser
 from app.activity.schema import ActivityParsed
@@ -16,7 +17,7 @@ from app.activity.schema import ActivityParsed
 pytestmark = pytest.mark.unit
 
 
-class StubGroqClient:
+class StubGroqClient(LLMClient):
     def __init__(
         self,
         *,

@@ -1,49 +1,30 @@
 from typing import Any
 
 import httpx
-from pydantic import BaseModel
 
 from app.config import settings
+from app.core.llm_client.base import (
+    ChatCompletionResponse,
+    LLMApiError,
+    LLMClient,
+    LLMError,
+)
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
 
-class GroqError(Exception):
+class GroqError(LLMError):
     pass
 
 
-class GroqApiError(GroqError):
+class GroqApiError(GroqError, LLMApiError):
     def __init__(self, status_code: int, message: str):
         self.status_code = status_code
         self.message = message
-        super().__init__(f"Groq API error {status_code}: {message}")
+        LLMError.__init__(self, f"Groq API error {status_code}: {message}")
 
 
-class ChatMessage(BaseModel):
-    role: str
-    content: str
-
-
-class ChatCompletionChoice(BaseModel):
-    index: int
-    message: ChatMessage
-    finish_reason: str
-
-
-class ChatCompletionUsage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-
-
-class ChatCompletionResponse(BaseModel):
-    id: str
-    model: str
-    choices: list[ChatCompletionChoice]
-    usage: ChatCompletionUsage
-
-
-class GroqClient:
+class GroqClient(LLMClient):
     def __init__(
         self,
         api_key: str | None = None,
@@ -107,5 +88,6 @@ class GroqClient:
             raise GroqApiError(response.status_code, error_msg)
 
         return ChatCompletionResponse.model_validate(response.json())
+
 
 groq_client = GroqClient()

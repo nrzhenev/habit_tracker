@@ -1,11 +1,14 @@
 import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, func
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.user.model import User
 
 
 class Entry(Base):
@@ -19,9 +22,7 @@ class Entry(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    entry_type: Mapped[str | None] = mapped_column(
-        String(20), nullable=True
-    )
+    entry_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="entries")
     expense: Mapped[Optional["Expense"]] = relationship(

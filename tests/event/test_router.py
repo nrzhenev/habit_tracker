@@ -1,46 +1,6 @@
 import pytest
-import datetime
-
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-
-from app.event.schema import EventParsed
-from app.event.deps import get_event_parser
-from app.db.session import get_db
-
 
 pytestmark = pytest.mark.integration
-
-
-@pytest_asyncio.fixture
-async def async_client(app, db_session):
-    async def override_get_db():
-        yield db_session
-
-    async def override_get_event_parser():
-        from app.event.parsing.client import LLMEventParser
-
-        class _Stub(LLMEventParser):
-            async def parse(self, content, settings):
-                return EventParsed(
-                    action="meeting",
-                    occurred_at=datetime.datetime(
-                        2025, 1, 1, tzinfo=datetime.timezone.utc
-                    ),
-                )
-
-        yield _Stub()
-
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_event_parser] = override_get_event_parser
-
-    transport = ASGITransport(app=app)
-
-    try:
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
 
 
 async def test_should_return_201_when_create_event(async_client, auth_headers):

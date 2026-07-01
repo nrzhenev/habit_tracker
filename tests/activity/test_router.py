@@ -1,48 +1,6 @@
 import pytest
-import datetime
-
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-
-from app.activity.schema import ActivityParsed
-from app.activity.deps import get_activity_parser
-from app.db.session import get_db
 
 pytestmark = pytest.mark.integration
-
-
-@pytest_asyncio.fixture
-async def async_client(app, db_session):
-    async def override_get_db():
-        yield db_session
-
-    async def override_get_activity_parser():
-        from app.activity.parsing.client import LLMActivityParser
-
-        class _Stub(LLMActivityParser):
-            async def parse(self, content, settings):
-                return ActivityParsed(
-                    started_at=datetime.datetime(
-                        2025, 1, 1, 10, tzinfo=datetime.timezone.utc
-                    ),
-                    ended_at=datetime.datetime(
-                        2025, 1, 1, 10, 30, tzinfo=datetime.timezone.utc
-                    ),
-                    category="running",
-                )
-
-        yield _Stub()
-
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_activity_parser] = override_get_activity_parser
-
-    transport = ASGITransport(app=app)
-
-    try:
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
 
 
 async def test_should_return_201_when_create_activity(async_client, auth_headers):

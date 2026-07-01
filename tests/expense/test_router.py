@@ -1,49 +1,6 @@
 import pytest
-import datetime
-
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-
-from app.expense.schema import ExpenseParsed
-from app.expense.deps import get_expense_parser
-from app.db.session import get_db
 
 pytestmark = pytest.mark.integration
-
-
-@pytest_asyncio.fixture
-async def async_client(app, db_session):
-    async def override_get_db():
-        yield db_session
-
-    async def override_get_expense_parser():
-        from app.expense.parsing.client import LLMExpenseParser
-
-        class _Stub(LLMExpenseParser):
-            async def parse(self, content, settings):
-                return ExpenseParsed(
-                    occurred_at=datetime.datetime(
-                        2025, 1, 1, tzinfo=datetime.timezone.utc
-                    ),
-                    amount=500.0,
-                    currency="RUB",
-                    category="food",
-                    place="Perekrestok",
-                    items=["bread", "milk"],
-                )
-
-        yield _Stub()
-
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_expense_parser] = override_get_expense_parser
-
-    transport = ASGITransport(app=app)
-
-    try:
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
 
 
 async def test_should_return_201_when_create_expense(async_client, auth_headers):

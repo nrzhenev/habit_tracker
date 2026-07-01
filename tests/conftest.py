@@ -10,8 +10,6 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.user.model import User
 from app.entry.model import Entry
-from app.entry.schema import ClassificationResponse
-from app.entry.deps import get_classifier
 from app.main import get_app
 
 TEST_DB_NAME = f"{settings.POSTGRES_DB}_test"
@@ -83,16 +81,6 @@ async def app(db_session):
 
 @pytest_asyncio.fixture
 async def async_client(app):
-    async def override_get_classifier():
-        from app.entry.entry_classification.client import LLMClassifier
-
-        class _Stub(LLMClassifier):
-            async def classify(self, uc, us):
-                return ClassificationResponse(type="activity")
-
-        yield _Stub()
-
-    app.dependency_overrides[get_classifier] = override_get_classifier
     transport = ASGITransport(app=app)
     try:
         async with AsyncClient(transport=transport, base_url="http://test") as client:

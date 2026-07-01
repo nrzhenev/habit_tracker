@@ -22,7 +22,7 @@ async def process_entry(user_content: str, user: User, db, *, classifier) -> Ent
             else UserSettingsSchema()
         )
 
-        classification = await classifier.classify(user_content, settings)
+        classification = await classifier.run(user_content, settings)
         entry.entry_type = classification.type
 
         await db.commit()

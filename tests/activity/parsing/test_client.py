@@ -57,7 +57,7 @@ async def test_parser_should_call_llm(user_settings):
         '"ended_at":"2025-01-01T10:30:00+00:00","category":"running"}'
     )
     parser = LLMActivityParser(client=stub)
-    result = await parser.parse("Ran for 30 minutes", user_settings)
+    result = await parser.run("Ran for 30 minutes", user_settings)
     assert result == ActivityParsed(
         started_at=datetime.datetime(2025, 1, 1, 10, tzinfo=datetime.timezone.utc),
         ended_at=datetime.datetime(2025, 1, 1, 10, 30, tzinfo=datetime.timezone.utc),
@@ -69,4 +69,4 @@ async def test_should_raise_groq_api_error(user_settings):
     stub = StubGroqClient(raise_error=GroqApiError(500, "Internal error"))
     parser = LLMActivityParser(client=stub)
     with pytest.raises(GroqApiError):
-        await parser.parse("test", user_settings)
+        await parser.run("test", user_settings)

@@ -26,7 +26,7 @@ async def create_activity(
     await db.flush()
 
     settings = await load_user_settings(db, user)
-    parsed = await parser.parse(content, settings)
+    parsed = await parser.run(content, settings)
 
     if parsed.started_at is None:
         parsed.started_at = current_datetime(settings)

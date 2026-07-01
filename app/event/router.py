@@ -29,7 +29,7 @@ async def create_event(
 
     try:
         user_settings = await _load_user_settings(db, user)
-        parsed = await parser.parse(content, user_settings)
+        parsed = await parser.run(content, user_settings)
 
         if parsed.occurred_at is None:
             parsed.occurred_at = current_datetime(user_settings)

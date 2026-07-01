@@ -29,7 +29,7 @@ async def create_expense(
 
     try:
         user_settings = await _load_user_settings(db, user)
-        parsed = await parser.parse(content, user_settings)
+        parsed = await parser.run(content, user_settings)
 
         if parsed.occurred_at is None:
             parsed.occurred_at = current_datetime(user_settings)
@@ -152,4 +152,4 @@ async def parse_expense(
     parser: LLMExpenseParser = Depends(get_expense_parser),
 ):
     user_settings = await _load_user_settings(db, user)
-    return await parser.parse(content, user_settings)
+    return await parser.run(content, user_settings)

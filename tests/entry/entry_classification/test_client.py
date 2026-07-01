@@ -56,7 +56,7 @@ class TestClassify:
             '"amount":100,"category":"food","place":null}'
         )
         service = LLMClassifier(client=stub)
-        result = await service.classify("Spent 100", user_settings)
+        result = await service.run("Spent 100", user_settings)
         assert result == ClassificationResponse(type="expense")
 
     async def test_should_classify_as_activity(self, user_settings):
@@ -65,7 +65,7 @@ class TestClassify:
             '"ended_at":"2025-01-01T10:30:00+03:00","category":"sport"}'
         )
         service = LLMClassifier(client=stub)
-        result = await service.classify("Ran for 30 minutes", user_settings)
+        result = await service.run("Ran for 30 minutes", user_settings)
         assert result == ClassificationResponse(type="activity")
 
     async def test_should_classify_as_event(self, user_settings):
@@ -73,11 +73,11 @@ class TestClassify:
             return_json='{"type":"event","action":"woke_up","occurred_at":"2025-01-01T07:00:00+03:00"}'
         )
         service = LLMClassifier(client=stub)
-        result = await service.classify("Woke up", user_settings)
+        result = await service.run("Woke up", user_settings)
         assert result == ClassificationResponse(type="event")
 
     async def test_should_raise_groq_api_error(self, user_settings):
         stub = StubGroqClient(raise_error=GroqApiError(500, "Internal error"))
         service = LLMClassifier(client=stub)
         with pytest.raises(GroqApiError):
-            await service.classify("test", user_settings)
+            await service.run("test", user_settings)

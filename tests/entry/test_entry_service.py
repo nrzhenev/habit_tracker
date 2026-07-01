@@ -16,7 +16,7 @@ class StubClassifier(LLMClassifier):
         self._return_classification = return_classification
         self._raise_error = raise_error
 
-    async def classify(self, user_content, user_settings):
+    async def run(self, user_content, user_settings):
         if self._raise_error:
             raise self._raise_error
         return self._return_classification

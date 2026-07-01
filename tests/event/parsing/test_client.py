@@ -56,7 +56,7 @@ async def test_parser_should_call_llm(user_settings):
         return_json='{"action":"woke up","occurred_at":"2025-01-01T07:00:00+00:00"}'
     )
     parser = LLMEventParser(client=stub)
-    result = await parser.parse("Woke up at 7am", user_settings)
+    result = await parser.run("Woke up at 7am", user_settings)
     assert result == EventParsed(
         action="woke up",
         occurred_at=datetime.datetime(2025, 1, 1, 7, tzinfo=datetime.timezone.utc),
@@ -67,4 +67,4 @@ async def test_should_raise_groq_api_error(user_settings):
     stub = StubGroqClient(raise_error=GroqApiError(500, "Internal error"))
     parser = LLMEventParser(client=stub)
     with pytest.raises(GroqApiError):
-        await parser.parse("test", user_settings)
+        await parser.run("test", user_settings)

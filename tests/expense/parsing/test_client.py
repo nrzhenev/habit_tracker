@@ -58,7 +58,7 @@ async def test_parser_should_call_llm(user_settings):
         '"items":["bread","milk"]}'
     )
     parser = LLMExpenseParser(client=stub)
-    result = await parser.parse("Test Message", user_settings)
+    result = await parser.run("Test Message", user_settings)
     assert result == ExpenseParsed(
         occurred_at=datetime.datetime(2025, 1, 1, tzinfo=datetime.timezone.utc),
         amount=500.0,
@@ -73,4 +73,4 @@ async def test_should_raise_groq_api_error(user_settings):
     stub = StubGroqClient(raise_error=GroqApiError(500, "Internal error"))
     parser = LLMExpenseParser(client=stub)
     with pytest.raises(GroqApiError):
-        await parser.parse("test", user_settings)
+        await parser.run("test", user_settings)

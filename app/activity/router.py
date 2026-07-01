@@ -2,8 +2,8 @@ from fastapi import APIRouter, Body, Depends, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.activity.activity_service import create_activity as create_activity_service
-from app.activity.activity_service import update_activity as update_activity_service
+from app.activity.service import create_activity as create_activity_service
+from app.activity.service import update_activity as update_activity_service
 from app.activity.deps import get_activity_parser, get_owned_activity
 from app.activity.model import Activity
 from app.activity.parsing.client import LLMActivityParser

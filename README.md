@@ -1,5 +1,15 @@
 # Habits Tracker
 
+Personal log tracker that turns free-form text messages into structured records.
+
+Write what you did in plain language — the app is able to parse an expense, activity, event.
+
+## Roadmap
+
+- [ ] Database migrations (Alembic)
+- [ ] Analytics and stats (spending by category, activity trends, streaks)
+- [ ] Correction flow — review and confirm what the LLM parsed before saving
+
 ## Setup
 
 1. Clone the repository

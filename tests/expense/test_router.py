@@ -181,24 +181,3 @@ async def test_should_return_404_when_delete_expense_not_owned(
         headers=other_auth_headers,
     )
     assert response.status_code == 404
-
-
-async def test_should_return_200_when_parse_expense(async_client, auth_headers):
-    response = await async_client.post(
-        "/expenses/parse",
-        json="Test content",
-        headers=auth_headers,
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["amount"] == 500.0
-    assert "currency" in data
-    assert "category" in data
-
-
-async def test_should_return_401_when_parse_without_auth(async_client):
-    response = await async_client.post(
-        "/expenses/parse",
-        json="Bought coffee",
-    )
-    assert response.status_code == 401

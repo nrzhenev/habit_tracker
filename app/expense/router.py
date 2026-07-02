@@ -9,7 +9,7 @@ from app.entry.model import Entry
 from app.expense.deps import get_expense_parser
 from app.expense.model import Expense
 from app.expense.parsing.client import LLMExpenseParser
-from app.expense.schema import ExpenseParsed, ExpenseRead, ExpenseUpdate
+from app.expense.schema import ExpenseRead, ExpenseUpdate
 from app.user.model import User, UserSettings
 from app.user.schema import UserSettingsSchema
 
@@ -142,14 +142,3 @@ async def _load_user_settings(db, user):
     if row:
         return UserSettingsSchema.model_validate(row)
     return UserSettingsSchema()
-
-
-@router.post("/parse", response_model=ExpenseParsed)
-async def parse_expense(
-    content: str = Body(...),
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-    parser: LLMExpenseParser = Depends(get_expense_parser),
-):
-    user_settings = await _load_user_settings(db, user)
-    return await parser.run(content, user_settings)

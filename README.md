@@ -37,3 +37,4 @@ Interactive docs: `http://localhost:8000/docs`.
 "POSTGRES_PASSWORD"
 "POSTGRES_DB"
 "SECRET_KEY" - JWT secret key
+"GROQ_API_KEY" - Your GROQ LLM API key

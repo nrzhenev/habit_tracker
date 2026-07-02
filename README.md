@@ -38,3 +38,14 @@ Interactive docs: `http://localhost:8000/docs`.
 "POSTGRES_DB"
 "SECRET_KEY" - JWT secret key
 "GROQ_API_KEY" - Your GROQ LLM API key
+
+## API testing
+
+Ready-to-use request collection for [Bruno](https://www.usebruno.com/) is available in `bruno/`.
+
+1. From terminal open `bruno/` folder as a collection
+```bash
+   bruno bruno
+```
+2. Select the `local` environment (or create your own based on `environments/`)
+3. Register a user via `Auth → Register`, then log in to get an access token

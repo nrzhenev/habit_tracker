@@ -1,0 +1,23 @@
+meta {
+  name: Update Settings
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{base_url}}/me/settings
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "default_currency": "GEL",
+    "timezone": "Asia/Tbilisi"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

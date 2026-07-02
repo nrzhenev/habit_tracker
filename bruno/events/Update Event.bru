@@ -1,0 +1,23 @@
+meta {
+  name: Update Event
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/events/{{event_id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "action": "string",
+    "occurred_at": "2026-06-03T02:24:04.821Z"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,23 @@
+meta {
+  name: List Entries
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/entries
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "nikita2@example.com",
+    "password": "12345"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

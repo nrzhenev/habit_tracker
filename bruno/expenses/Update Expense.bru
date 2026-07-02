@@ -1,0 +1,29 @@
+meta {
+  name: Update Expense
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/expenses/{{expense_id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "occurred_at": "2026-06-03T02:22:53.946Z",
+    "currency": "string",
+    "items": [
+      "string"
+    ],
+    "amount": 0,
+    "category": "string",
+    "place": "string"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

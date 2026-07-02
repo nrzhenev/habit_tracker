@@ -1,0 +1,23 @@
+meta {
+  name: Delete Entry
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{base_url}}/entries/{{entry_id}}
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "nikita2@example.com",
+    "password": "12345"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

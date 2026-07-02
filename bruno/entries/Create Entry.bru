@@ -1,0 +1,22 @@
+meta {
+  name: Create Entry
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/entries
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "content": "Woke up at 8 pm"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

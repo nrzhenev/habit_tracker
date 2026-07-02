@@ -1,0 +1,24 @@
+meta {
+  name: Update Activity
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{base_url}}/activities/{{activity_id}}
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "started_at": "2026-06-03T02:23:33.378Z",
+    "ended_at": "2026-06-03T02:23:33.378Z",
+    "category": "string"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

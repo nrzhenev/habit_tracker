@@ -1,0 +1,23 @@
+meta {
+  name: Get Entry Details
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/entries/{{entry_id}}/details
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "email": "nikita2@example.com",
+    "password": "12345"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
